@@ -28,20 +28,16 @@
     <p id="policy">Click the button to generate a policy!</p>
 
     <script>
-        const policies = [
-            "Build a wall on Mars to stop illegal aliens!",
-            "Make golf mandatory for all citizens!",
-            "Declare McDonald's the official food of America!",
-            "Launch 'TrumpTV' as the only news channel allowed!",
-            "Rename the dollar to 'Trump Bucks'!",
-            "Ban all negative news articles about Trump!",
-            "Appoint Trump as president for life!",
-            "Make Twitter/X the official communication platform for the White House!"
-        ];
-
         function generatePolicy() {
-            const randomIndex = Math.floor(Math.random() * policies.length);
-            document.getElementById("policy").innerText = policies[randomIndex];
+            const subjects = ["America", "the economy", "social media", "education", "the military", "space exploration", "immigration", "taxes"];
+            const actions = ["will be revolutionized", "must be protected", "should be privatized", "needs to be deregulated", "is the top priority", "will receive unlimited funding", "must be rebuilt from scratch", "is under attack"];
+            const additions = ["with the best technology", "by making it Trump-branded", "using AI-powered solutions", "by cutting all regulations", "with a new Trump University program", "via executive order", "by making it tax-free", "through a nationwide vote on Twitter/X"];
+            
+            const subject = subjects[Math.floor(Math.random() * subjects.length)];
+            const action = actions[Math.floor(Math.random() * actions.length)];
+            const addition = additions[Math.floor(Math.random() * additions.length)];
+            
+            document.getElementById("policy").innerText = `${subject} ${action} ${addition}!`;
         }
     </script>
 </body>
