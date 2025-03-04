@@ -10,6 +10,22 @@
             text-align: center;
             padding: 50px;
         }
+        #container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        #portrait {
+            width: 200px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        #logo {
+            width: 150px;
+            height: auto;
+            margin-bottom: 20px;
+        }
         button {
             font-size: 20px;
             padding: 10px;
@@ -24,7 +40,12 @@
     </style>
 </head>
 <body>
-    <h1>Trump's Next Big Policy Idea</h1>
+    <div id="container">
+        <img id="logo" src="https://upload.wikimedia.org/wikipedia/commons/3/3e/US-WhiteHouse-Logo.svg" alt="White House Logo">
+        <img id="portrait" src="portrait.png" alt="Portrait of a Powerful Leader">
+    </div>
+    
+    <h1>Next Big Policy Idea</h1>
     <button onclick="generatePolicy()">Generate Policy</button>
     <p id="policy">Click the button to generate a policy!</p>
 
@@ -39,11 +60,11 @@
             ];
             
             const actions = [
-                "will be made great again", "must be owned by Trump", "should have gold statues of me", "needs total deregulation", "must be renamed to Trumpland", "should be tax-free for billionaires", "will be the biggest in history", "will receive unlimited funding"
+                "will be made great again", "must be owned by our leader", "should have gold statues of me", "needs total deregulation", "must be renamed to Victory Land", "should be tax-free for billionaires", "will be the biggest in history", "will receive unlimited funding"
             ];
             
             const additions = [
-                "by executive order", "with a 100-foot golden Trump statue", "to own the libs", "with the best deals ever", "because only Trump can fix it", "using my genius business skills", "to make America even greater", "and Mexico will pay for it"
+                "by executive order", "with a 100-foot golden statue", "to own the opposition", "with the best deals ever", "because only I can fix it", "using my genius business skills", "to make the nation even greater", "and our neighbors will pay for it"
             ];
             
             const subject = subjects[Math.floor(Math.random() * subjects.length)];
