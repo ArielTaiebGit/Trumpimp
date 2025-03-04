@@ -41,7 +41,7 @@
 </head>
 <body>
     <div id="container">
-       <img id="logo" src="white_house.png" alt="White House Logo">
+        <img id="logo" src="white_house.png" alt="White House Logo">
         <img id="portrait" src="new_portrait.png" alt="Portrait of a Powerful Leader">
     </div>
     
@@ -65,29 +65,22 @@
             "the CIA", "national security", "the deep state", "religious freedom", "border security", "drug cartels", "prison reform"
         ];
 
-        const actions = {
-            "default": [
-                "will be made great again", "must be owned by our leader", "should have gold statues of me", "needs total deregulation", 
-                "must be renamed to Victory Land", "should be tax-free for billionaires", "will be the biggest in history", "will receive unlimited funding", 
-                "should be replaced with a golf course", "must pay me royalties", "will be declared illegal", "should be run like a casino", 
-                "needs a reality TV show", "must be taught in schools", "will have a Trump-branded version", "will be completely privatized", 
-                "must have a patriotic rebranding", "will be the official symbol of success", "should have a statue of me", "will be powered by free market forces"
-            ]
-        };
-
-        const additions = [
-            "by executive order", "with a 100-foot golden statue", "to own the opposition", "with the best deals ever", "because only I can fix it", 
-            "using my genius business skills", "to make the nation even greater", "and Mexico will pay for it", "effective immediately", "because freedom", 
-            "to trigger the liberals", "to boost my net worth", "so billionaires can relax", "so we can finally win", "because I said so", "to protect Christmas", 
-            "to prevent socialism", "to stop election fraud", "to honor our great leaders", "to ensure America dominates the world"
+        const templates = [
+            "Nobody thought ${subject} could be so incredible, but under my leadership, it's going to be the best ${subject} you've ever seen. Believe me!",
+            "The fake news won't tell you this, but I'm making ${subject} so great, so powerful, people are calling me a genius!",
+            "We are going to fix ${subject} like nobody has ever fixed it before. It’s going to be HUGE!",
+            "People are saying ${subject} is a disaster right now. But don’t worry, folks, I have a plan, and it’s the best plan. The greatest plan!",
+            "Some weak leaders want to destroy ${subject}. But not on my watch! We’re going to make it stronger, richer, and more successful than ever before!",
+            "I talked to some very smart people, the best people, and they all agree—${subject} is going to be bigger, better, and more tremendous than ever!",
+            "Folks, if I were in charge earlier, ${subject} would already be winning. But don’t worry, we’re bringing it back! Stronger than ever!",
+            "They said it couldn’t be done. They laughed at me. But I’m telling you right now—${subject} is going to be absolutely incredible!"
         ];
 
         function generatePolicy() {
             let subject = subjects[Math.floor(Math.random() * subjects.length)];
-            let action = actions["default"][Math.floor(Math.random() * actions["default"].length)];
-            let addition = additions[Math.floor(Math.random() * additions.length)];
+            let template = templates[Math.floor(Math.random() * templates.length)];
 
-            document.getElementById("policy").innerText = capitalizeFirstLetter(`${subject} ${action} ${addition}!`);
+            document.getElementById("policy").innerText = template.replace("${subject}", subject);
         }
     </script>
 </body>
