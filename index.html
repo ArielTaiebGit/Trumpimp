@@ -41,7 +41,7 @@
 </head>
 <body>
     <div id="container">
-        <img id="logo" src="white_house.png" alt="White House Logo">
+       <img id="logo" src="white_house.png" alt="White House Logo">
         <img id="portrait" src="new_portrait.png" alt="Portrait of a Powerful Leader">
     </div>
     
@@ -54,30 +54,39 @@
             return string.charAt(0).toUpperCase() + string.slice(1);
         }
 
-        function generatePolicy() {
-            const subjects = [
-                "America", "the economy", "Twitter/X", "the border wall", "golf courses", "McDonald's", "the moon", "Trump Tower", "the media", 
-                "LGBTQ parades", "abortion clinics", "Elon Musk", "wokism", "Europe's wine prices", "taxes on the poor", "NFTs", "military spending", 
-                "California", "Hollywood"
-            ];
-            
-            const actions = [
+        const subjects = [
+            "America", "the economy", "Twitter/X", "the border wall", "golf courses", "McDonald's", "the moon", "Trump Tower", "the media", 
+            "LGBTQ parades", "abortion clinics", "Elon Musk", "wokism", "Europe's wine prices", "taxes on the poor", "NFTs", "military spending", 
+            "California", "Hollywood", "unions", "fast food regulations", "climate change", "space travel", "artificial intelligence", "electric cars",
+            "vaccines", "gun laws", "China", "Russia", "fake news", "big pharma", "Wall Street", "healthcare", "public education", "government spending",
+            "welfare programs", "cryptocurrency", "national parks", "Hollywood elites", "billionaires", "Democrats", "Republicans", "socialists",
+            "free speech", "minimum wage", "international trade", "student debt", "law enforcement", "supreme court", "big tech", "the stock market",
+            "welfare fraud", "small businesses", "tax loopholes", "the IRS", "sanctuary cities", "diplomatic relations", "the UN", "the FBI",
+            "the CIA", "national security", "the deep state", "religious freedom", "border security", "drug cartels", "prison reform"
+        ];
+
+        const actions = {
+            "default": [
                 "will be made great again", "must be owned by our leader", "should have gold statues of me", "needs total deregulation", 
                 "must be renamed to Victory Land", "should be tax-free for billionaires", "will be the biggest in history", "will receive unlimited funding", 
                 "should be replaced with a golf course", "must pay me royalties", "will be declared illegal", "should be run like a casino", 
-                "needs a reality TV show", "must be taught in schools", "will have a Trump-branded version"
-            ];
-            
-            const additions = [
-                "by executive order", "with a 100-foot golden statue", "to own the opposition", "with the best deals ever", "because only I can fix it", 
-                "using my genius business skills", "to make the nation even greater", "and Mexico will pay for it", "effective immediately", "because freedom", 
-                "to trigger the liberals", "to boost my net worth", "so billionaires can relax", "so we can finally win", "because I said so", "to protect Christmas"
-            ];
-            
-            const subject = subjects[Math.floor(Math.random() * subjects.length)];
-            const action = actions[Math.floor(Math.random() * actions.length)];
-            const addition = additions[Math.floor(Math.random() * additions.length)];
-            
+                "needs a reality TV show", "must be taught in schools", "will have a Trump-branded version", "will be completely privatized", 
+                "must have a patriotic rebranding", "will be the official symbol of success", "should have a statue of me", "will be powered by free market forces"
+            ]
+        };
+
+        const additions = [
+            "by executive order", "with a 100-foot golden statue", "to own the opposition", "with the best deals ever", "because only I can fix it", 
+            "using my genius business skills", "to make the nation even greater", "and Mexico will pay for it", "effective immediately", "because freedom", 
+            "to trigger the liberals", "to boost my net worth", "so billionaires can relax", "so we can finally win", "because I said so", "to protect Christmas", 
+            "to prevent socialism", "to stop election fraud", "to honor our great leaders", "to ensure America dominates the world"
+        ];
+
+        function generatePolicy() {
+            let subject = subjects[Math.floor(Math.random() * subjects.length)];
+            let action = actions["default"][Math.floor(Math.random() * actions["default"].length)];
+            let addition = additions[Math.floor(Math.random() * additions.length)];
+
             document.getElementById("policy").innerText = capitalizeFirstLetter(`${subject} ${action} ${addition}!`);
         }
     </script>
