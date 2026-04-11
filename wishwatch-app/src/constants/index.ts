@@ -13,7 +13,8 @@ function resolveApiUrl(): string {
       return `http://${host}:3000/api`;
     }
   } catch {}
-  return "http://localhost:3000/api";
+  // Fallback to known local IP
+  return "http://192.168.0.15:3000/api";
 }
 
 export const API_BASE_URL = resolveApiUrl();
