@@ -1,69 +1,52 @@
-import * as cheerio from "cheerio";
-import { httpClient, randomUserAgent, randomDelay, parsePrice } from "./utils";
+import { newContext } from "./browser";
+import { parsePrice, randomDelay } from "./utils";
 import type { ScrapeResult, ScraperOptions } from "./types";
 import { logger } from "../utils/logger";
 
 export async function scrapePCComponentes(options: ScraperOptions): Promise<ScrapeResult[]> {
   await randomDelay();
-
-  const searchUrl = `https://www.pccomponentes.com/buscar/?query=${encodeURIComponent(options.query)}`;
+  const context = await newContext();
+  const results: ScrapeResult[] = [];
 
   try {
-    const res = await httpClient.get<string>(searchUrl, {
-      headers: {
-        "User-Agent": randomUserAgent(),
-        Referer: "https://www.pccomponentes.com/",
-        "Accept-Language": "es-ES,es;q=0.9",
-      },
-      responseType: "text",
-    });
+    const page = await context.newPage();
+    const url  = `https://www.pccomponentes.com/buscar/?query=${encodeURIComponent(options.query)}`;
 
-    const $ = cheerio.load(res.data);
-    const results: ScrapeResult[] = [];
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 20000 });
+    await page.waitForTimeout(1500);
 
-    // PcComponentes product cards
-    $("article.c-product-card, [data-product-id]").each((i, el) => {
-      if (results.length >= 1) return false;
+    const cards = await page.$$("article, [data-product-id]");
+    for (const card of cards.slice(0, 3)) {
+      const title    = await card.$eval("h2, h3, [class*='title']", el => el.textContent?.trim()).catch(() => null);
+      const priceRaw = await card.$eval("[class*='price']",          el => el.textContent?.trim()).catch(() => null);
+      const price    = priceRaw ? parsePrice(priceRaw) : null;
+      const href     = await card.$eval("a", el => el.getAttribute("href")).catch(() => null);
+      const img      = await card.$eval("img", el => el.getAttribute("src") ?? el.getAttribute("data-src")).catch(() => null);
 
-      const $el = $(el);
-      const title =
-        $el.find(".c-product-card__title, [class*='product-title']").first().text().trim() ||
-        $el.find("h2, h3").first().text().trim();
+      if (!title || !price || !href) continue;
 
-      const priceRaw =
-        $el.find(".c-product-card__price, [class*='price']").first().text().trim();
-      const price = parsePrice(priceRaw);
-
-      const relUrl = $el.find("a").first().attr("href");
-      const image = $el.find("img").first().attr("src") || $el.find("img").first().attr("data-src");
-
-      if (!title || !price || !relUrl) return;
-
-      const url = relUrl.startsWith("http")
-        ? relUrl
-        : `https://www.pccomponentes.com${relUrl}`;
-
-      // Check out-of-stock indicators
-      const outOfStock =
-        $el.find("[class*='out-of-stock'], [class*='agotado']").length > 0 ||
-        $el.text().toLowerCase().includes("agotado");
+      const outOfStock = ((await card.textContent()) ?? "").toLowerCase().includes("agotado");
 
       results.push({
-        retailer: "pccomponentes",
-        productName: title,
+        retailer:     "pccomponentes",
+        productName:  title,
         price,
-        currency: "EUR",
-        url,
-        imageUrl: image,
-        inStock: !outOfStock,
+        currency:     "EUR",
+        url:          href.startsWith("http") ? href : `https://www.pccomponentes.com${href}`,
+        imageUrl:     img ?? undefined,
+        inStock:      !outOfStock,
         shipsToSpain: true,
-        shippingCost: price >= 59 ? 0 : 5.99, // PcComponentes: free shipping over 59€
+        shippingCost: price >= 59 ? 0 : 5.99,
       });
-    });
+      break;
+    }
 
-    return results;
+    await page.close();
   } catch (err) {
-    logger.warn("PCComponentes scrape failed", err);
-    return [];
+    logger.warn("PCComponentes failed", err instanceof Error ? err.message : err);
+  } finally {
+    await context.close();
   }
+
+  return results;
 }

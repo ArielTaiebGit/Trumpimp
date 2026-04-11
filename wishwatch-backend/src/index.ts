@@ -5,6 +5,7 @@ import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 
 import { connectDb, disconnectDb } from "./db";
+import { closeBrowser } from "./scrapers/browser";
 import { deviceIdMiddleware } from "./middleware/deviceId";
 import { itemsRouter } from "./routes/items";
 import { dealsRouter } from "./routes/deals";
@@ -89,6 +90,7 @@ main().catch(async (err) => {
 
 process.on("SIGINT", async () => {
   logger.info("Shutting down...");
+  await closeBrowser();
   await disconnectDb();
   process.exit(0);
 });

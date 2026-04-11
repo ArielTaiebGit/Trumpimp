@@ -1,126 +1,77 @@
-import * as cheerio from "cheerio";
-import { httpClient, randomUserAgent, randomDelay, parsePrice, gbpToEur } from "./utils";
+import { newContext } from "./browser";
+import { parsePrice, gbpToEur, randomDelay } from "./utils";
 import type { ScrapeResult, ScraperOptions } from "./types";
 import { logger } from "../utils/logger";
 
-type AmazonDomain = {
-  id: string;
-  domain: string;
-  currency: string;
-  shipsToSpain: boolean;
-  countryCode: string;
-};
-
-const AMAZON_DOMAINS: AmazonDomain[] = [
-  { id: "amazon_es", domain: "amazon.es", currency: "EUR", shipsToSpain: true, countryCode: "es" },
-  { id: "amazon_de", domain: "amazon.de", currency: "EUR", shipsToSpain: true, countryCode: "de" },
-  { id: "amazon_fr", domain: "amazon.fr", currency: "EUR", shipsToSpain: true, countryCode: "fr" },
-  { id: "amazon_it", domain: "amazon.it", currency: "EUR", shipsToSpain: true, countryCode: "it" },
-  { id: "amazon_uk", domain: "amazon.co.uk", currency: "GBP", shipsToSpain: false, countryCode: "gb" },
-];
-
-interface AmazonSearchResult {
-  title: string;
-  price: number | null;
-  originalPrice: number | null;
-  url: string;
-  imageUrl: string | null;
-  asin: string | null;
-}
-
-async function searchAmazon(
-  domain: AmazonDomain,
-  query: string
-): Promise<AmazonSearchResult | null> {
-  const searchUrl = `https://www.${domain.domain}/s?k=${encodeURIComponent(query)}&ref=nb_sb_noss`;
-
-  try {
-    const res = await httpClient.get<string>(searchUrl, {
-      headers: {
-        "User-Agent": randomUserAgent(),
-        Referer: `https://www.${domain.domain}`,
-      },
-      responseType: "text",
-    });
-
-    const $ = cheerio.load(res.data);
-
-    // Find the first sponsored or organic result with a price
-    let result: AmazonSearchResult | null = null;
-
-    $('[data-component-type="s-search-result"]').each((_, el) => {
-      if (result) return false; // break
-
-      const $el = $(el);
-      const asin = $el.attr("data-asin") || null;
-      const title = $el.find("h2 a span").text().trim();
-
-      if (!title || !asin) return;
-
-      // Price selectors for Amazon search
-      const priceWhole = $el.find(".a-price .a-price-whole").first().text().trim();
-      const priceFraction = $el.find(".a-price .a-price-fraction").first().text().trim();
-      const priceRaw = priceWhole + (priceFraction ? "." + priceFraction : "");
-      const price = parsePrice(priceRaw);
-
-      if (!price || price <= 0) return;
-
-      const originalPriceRaw = $el.find(".a-price.a-text-price .a-offscreen").first().text().trim();
-      const originalPrice = parsePrice(originalPriceRaw);
-
-      const relativeUrl = $el.find("h2 a").attr("href") || "";
-      const url = relativeUrl.startsWith("http")
-        ? relativeUrl
-        : `https://www.${domain.domain}${relativeUrl}`;
-
-      const imageUrl = $el.find("img.s-image").attr("src") || null;
-
-      result = { title, price, originalPrice, url, imageUrl, asin };
-    });
-
-    return result;
-  } catch (err) {
-    logger.warn(`Amazon ${domain.domain} search failed`, err);
-    return null;
-  }
-}
+const AMAZON_DOMAINS = [
+  { id: "amazon_es", domain: "amazon.es",    currency: "EUR", shipsToSpain: true,  baseShipping: 0    },
+  { id: "amazon_de", domain: "amazon.de",    currency: "EUR", shipsToSpain: true,  baseShipping: 3.99 },
+  { id: "amazon_fr", domain: "amazon.fr",    currency: "EUR", shipsToSpain: true,  baseShipping: 3.99 },
+  { id: "amazon_it", domain: "amazon.it",    currency: "EUR", shipsToSpain: true,  baseShipping: 3.99 },
+  { id: "amazon_uk", domain: "amazon.co.uk", currency: "GBP", shipsToSpain: false, baseShipping: 5.99 },
+] as const;
 
 export async function scrapeAmazon(options: ScraperOptions): Promise<ScrapeResult[]> {
   const results: ScrapeResult[] = [];
+  const context = await newContext();
 
-  for (const domain of AMAZON_DOMAINS) {
-    await randomDelay(1000, 3000);
+  try {
+    for (const site of AMAZON_DOMAINS) {
+      await randomDelay(1500, 3500);
+      const url = `https://www.${site.domain}/s?k=${encodeURIComponent(options.query)}`;
+      const page = await context.newPage();
 
-    const found = await searchAmazon(domain, options.query);
-    if (!found || !found.price) continue;
+      try {
+        await page.goto(url, { waitUntil: "domcontentloaded", timeout: 20000 });
 
-    let priceEur = found.price;
-    if (domain.currency === "GBP") {
-      priceEur = gbpToEur(found.price);
+        // Wait for search results
+        await page.waitForSelector('[data-component-type="s-search-result"]', { timeout: 8000 }).catch(() => {});
+
+        const items = await page.$$('[data-component-type="s-search-result"]');
+
+        for (const item of items.slice(0, 3)) {
+          const title = await item.$eval("h2 a span", el => el.textContent?.trim()).catch(() => null);
+          const asin  = await item.getAttribute("data-asin").catch(() => null);
+          if (!title || !asin) continue;
+
+          const priceWhole    = await item.$eval(".a-price .a-price-whole",    el => el.textContent?.trim()).catch(() => "");
+          const priceFraction = await item.$eval(".a-price .a-price-fraction", el => el.textContent?.trim()).catch(() => "");
+          const priceRaw      = (priceWhole + (priceFraction ? "." + priceFraction : "")).replace(/[^0-9.]/g, "");
+          const price         = parseFloat(priceRaw);
+          if (!price || price <= 0) continue;
+
+          const relUrl   = await item.$eval("h2 a", el => el.getAttribute("href")).catch(() => null);
+          const imageUrl = await item.$eval("img.s-image", el => el.getAttribute("src")).catch(() => null);
+          const url      = relUrl?.startsWith("http") ? relUrl : `https://www.${site.domain}${relUrl}`;
+
+          let priceEur = price;
+          if (site.currency === "GBP") priceEur = gbpToEur(price);
+
+          const shippingCost = priceEur >= 29 ? 0 : site.baseShipping;
+
+          results.push({
+            retailer:     site.id,
+            productName:  title,
+            price:        priceEur,
+            currency:     "EUR",
+            url:          url ?? `https://www.${site.domain}/dp/${asin}`,
+            imageUrl:     imageUrl ?? undefined,
+            inStock:      true,
+            shipsToSpain: site.shipsToSpain,
+            shippingCost,
+          });
+
+          logger.debug(`Amazon ${site.domain}: €${priceEur} — ${title.substring(0, 50)}`);
+          break; // first valid result per domain
+        }
+      } catch (err) {
+        logger.warn(`Amazon ${site.domain} failed`, err instanceof Error ? err.message : err);
+      } finally {
+        await page.close();
+      }
     }
-
-    // UK: check if actually ships to Spain (simplified — we mark as true with potential surcharge)
-    const shipsToSpain = domain.shipsToSpain;
-    const shippingCost = domain.id === "amazon_es" ? 0 :
-                         domain.id === "amazon_uk" ? 5.99 :
-                         priceEur >= 29 ? 0 : 3.99;
-
-    results.push({
-      retailer: domain.id,
-      productName: found.title,
-      price: priceEur,
-      originalPrice: found.originalPrice
-        ? domain.currency === "GBP" ? gbpToEur(found.originalPrice) : found.originalPrice
-        : undefined,
-      currency: "EUR",
-      url: found.url,
-      imageUrl: found.imageUrl ?? undefined,
-      inStock: true, // if it shows a price it's generally in stock
-      shipsToSpain,
-      shippingCost,
-    });
-
-    logger.debug(`Amazon ${domain.domain}: €${priceEur} for "${found.title.substring(0, 50)}"`);
+  } finally {
+    await context.close();
   }
 
   return results;
