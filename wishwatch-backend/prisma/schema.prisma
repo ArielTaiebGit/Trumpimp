@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  deviceId  String   @unique
+  pushToken String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  items     WishlistItem[]
+}
+
+model WishlistItem {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  description   String?
+  imageUrl      String?
+  category      String   @default("other")
+  searchQuery   String?
+  addedAt       DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  sortOrder     Int      @default(0)
+  notifyEnabled Boolean  @default(true)
+  lastScannedAt DateTime?
+
+  user   User          @relation(fields: [userId], references: [id])
+  prices PriceRecord[]
+
+  @@index([userId])
+}
+
+model PriceRecord {
+  id           String   @id @default(cuid())
+  itemId       String
+  retailer     String
+  price        Float
+  originalPrice Float?
+  currency     String   @default("EUR")
+  url          String
+  inStock      Boolean  @default(true)
+  shipsToSpain Boolean  @default(true)
+  shippingCost Float    @default(0)
+  recordedAt   DateTime @default(now())
+
+  item WishlistItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId, recordedAt])
+  @@index([itemId, retailer])
+}
+
+model NotificationLog {
+  id         String   @id @default(cuid())
+  userId     String
+  itemId     String
+  dealScore  Int
+  price      Float
+  retailer   String
+  sentAt     DateTime @default(now())
+
+  @@index([itemId, sentAt])
+}
