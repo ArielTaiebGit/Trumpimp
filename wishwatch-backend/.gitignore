@@ -5,3 +5,4 @@ dist/
 *.db-wal
 *.db-journal
 .env
+package-lock.json
