@@ -1,7 +1,10 @@
 import { Tabs } from "expo-router";
 import { View, Text, StyleSheet } from "react-native";
+import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "../../src/hooks/useTheme";
-import { useAppStore } from "../../src/store";
+import { api } from "../../src/services/api";
+import { DEAL_SCORE_THRESHOLD } from "../../src/constants";
+import type { WishlistItem } from "../../src/types";
 
 function TabBadge({ count }: { count: number }) {
   if (count === 0) return null;
@@ -14,7 +17,15 @@ function TabBadge({ count }: { count: number }) {
 
 export default function TabLayout() {
   const { colors, isDark } = useTheme();
-  const { dealBadgeCount } = useAppStore();
+  const { data: items = [] } = useQuery<WishlistItem[]>({
+    queryKey: ["items"],
+    queryFn: async () => {
+      const res = await api.getItems();
+      return res.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  const dealBadgeCount = items.filter((i) => (i.dealScore ?? 0) >= DEAL_SCORE_THRESHOLD).length;
 
   return (
     <Tabs

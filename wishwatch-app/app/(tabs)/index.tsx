@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
@@ -12,17 +12,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "../../src/hooks/useTheme";
-import { useAppStore } from "../../src/store";
 import { WishlistCard } from "../../src/components/WishlistCard";
 import { api } from "../../src/services/api";
-import { MAX_WISHLIST_ITEMS, DEAL_SCORE_THRESHOLD } from "../../src/constants";
+import { MAX_WISHLIST_ITEMS } from "../../src/constants";
 import type { WishlistItem } from "../../src/types";
 
 export default function WishlistScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { colors } = useTheme();
-  const setDealBadgeCount = useAppStore((s) => s.setDealBadgeCount);
   const queryClient = useQueryClient();
 
   const {
@@ -46,12 +44,6 @@ export default function WishlistScreen() {
       return res.data;
     },
   });
-
-  // Update badge count whenever items change
-  useEffect(() => {
-    const dealCount = items.filter((i) => (i.dealScore ?? 0) >= DEAL_SCORE_THRESHOLD).length;
-    setDealBadgeCount(dealCount);
-  }, [items, setDealBadgeCount]);
 
   const deleteMutation = useMutation({
     mutationFn: api.deleteItem,

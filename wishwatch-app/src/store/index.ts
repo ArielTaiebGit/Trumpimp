@@ -5,10 +5,6 @@ interface AppState {
   settings: AppSettings;
   updateSettings: (patch: Partial<AppSettings>) => void;
 
-  // Badge count for Deals tab
-  dealBadgeCount: number;
-  setDealBadgeCount: (count: number) => void;
-
   // Local optimistic state
   items: WishlistItem[];
   setItems: (items: WishlistItem[]) => void;
@@ -26,9 +22,6 @@ export const useAppStore = create<AppState>((set) => ({
 
   updateSettings: (patch) =>
     set((state) => ({ settings: { ...state.settings, ...patch } })),
-
-  dealBadgeCount: 0,
-  setDealBadgeCount: (count) => set({ dealBadgeCount: count }),
 
   items: [],
   setItems: (items) => set({ items }),
