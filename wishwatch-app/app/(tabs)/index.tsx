@@ -22,7 +22,7 @@ export default function WishlistScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { colors } = useTheme();
-  const { setDealBadgeCount } = useAppStore();
+  const setDealBadgeCount = useAppStore((s) => s.setDealBadgeCount);
   const queryClient = useQueryClient();
 
   const {
