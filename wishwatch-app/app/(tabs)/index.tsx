@@ -91,19 +91,9 @@ export default function WishlistScreen() {
             {stats?.activeDeals ? ` · ${stats.activeDeals} deals` : ""}
           </Text>
         </View>
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={handleScanAll} style={styles.scanButton}>
-            <Text style={styles.scanButtonText}>🔄</Text>
-          </TouchableOpacity>
-          {canAddMore && (
-            <TouchableOpacity
-              onPress={() => router.push("/add-item")}
-              style={[styles.addButton, { backgroundColor: "#6366f1" }]}
-            >
-              <Text style={styles.addButtonText}>+ Add</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        <TouchableOpacity onPress={handleScanAll} style={styles.scanButton}>
+          <Text style={styles.scanButtonText}>🔄</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Last scan info */}
@@ -156,14 +146,16 @@ export default function WishlistScreen() {
         }
       />
 
-      {/* Floating add button when list has items */}
-      {items.length > 0 && canAddMore && (
-        <TouchableOpacity
-          onPress={() => router.push("/add-item")}
-          style={[styles.fab, { bottom: insets.bottom + 80 }]}
-        >
-          <Text style={styles.fabText}>+</Text>
-        </TouchableOpacity>
+      {/* Persistent centered Add button */}
+      {canAddMore && (
+        <View style={[styles.addBarWrapper, { paddingBottom: insets.bottom + 80 }]}>
+          <TouchableOpacity
+            onPress={() => router.push("/add-item")}
+            style={styles.addBar}
+          >
+            <Text style={styles.addBarText}>+ Add item to wishlist</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
@@ -187,11 +179,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
   },
-  headerActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
   scanButton: {
     width: 38,
     height: 38,
@@ -201,12 +188,28 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(99,102,241,0.1)",
   },
   scanButtonText: { fontSize: 18 },
-  addButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+  addBarWrapper: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingTop: 12,
   },
-  addButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  addBar: {
+    backgroundColor: "#6366f1",
+    borderRadius: 28,
+    paddingVertical: 16,
+    paddingHorizontal: 40,
+    alignItems: "center",
+    shadowColor: "#6366f1",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  addBarText: { color: "#fff", fontWeight: "700", fontSize: 16 },
   scanInfo: {
     marginHorizontal: 16,
     marginBottom: 8,
@@ -232,20 +235,4 @@ const styles = StyleSheet.create({
     borderRadius: 24,
   },
   emptyButtonText: { color: "#fff", fontWeight: "700", fontSize: 15 },
-  fab: {
-    position: "absolute",
-    right: 20,
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "#6366f1",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#6366f1",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  fabText: { color: "#fff", fontSize: 28, lineHeight: 32, fontWeight: "300" },
 });

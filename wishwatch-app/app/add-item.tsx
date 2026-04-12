@@ -45,14 +45,25 @@ export default function AddItemScreen() {
     mutationFn: api.addItem,
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
-      router.back();
-      // Trigger a scan for the new item after a small delay
+      goBack();
       setTimeout(() => api.triggerScrapeItem(res.data.id).catch(() => {}), 2000);
     },
     onError: () => {
-      Alert.alert("Error", "Could not add item. Make sure the backend is running.");
+      Alert.alert(
+        "Backend not running",
+        "The WishWatch server needs to be running to save items.\n\nIn a terminal, go to the wishwatch-backend folder and run:\n\nnpm run dev",
+        [{ text: "OK" }]
+      );
     },
   });
+
+  const goBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(tabs)/");
+    }
+  };
 
   const handleAdd = useCallback(() => {
     const trimmedName = name.trim();
@@ -83,27 +94,12 @@ export default function AddItemScreen() {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* Header */}
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
+          <TouchableOpacity onPress={goBack} style={styles.backButton}>
+            <Text style={[styles.backArrow, { color: colors.textSecondary }]}>←</Text>
+            <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Back</Text>
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>Add Item</Text>
-          <TouchableOpacity
-            onPress={handleAdd}
-            disabled={addMutation.isPending || !name.trim()}
-          >
-            {addMutation.isPending ? (
-              <ActivityIndicator color="#6366f1" />
-            ) : (
-              <Text
-                style={[
-                  styles.addText,
-                  { color: name.trim() ? "#6366f1" : colors.textTertiary },
-                ]}
-              >
-                Add
-              </Text>
-            )}
-          </TouchableOpacity>
+          <View style={{ width: 64 }} />
         </View>
 
         <ScrollView
@@ -203,6 +199,22 @@ export default function AddItemScreen() {
               Prices are then tracked daily. You'll get notified when we find a deal score ≥ 70/100.
             </Text>
           </View>
+
+          {/* Submit button */}
+          <TouchableOpacity
+            onPress={handleAdd}
+            disabled={addMutation.isPending || !name.trim()}
+            style={[
+              styles.submitButton,
+              { opacity: addMutation.isPending || !name.trim() ? 0.5 : 1 },
+            ]}
+          >
+            {addMutation.isPending ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.submitButtonText}>Save to Wishlist</Text>
+            )}
+          </TouchableOpacity>
         </ScrollView>
       </View>
     </KeyboardAvoidingView>
@@ -219,8 +231,22 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   headerTitle: { fontSize: 17, fontWeight: "700" },
-  cancelText: { fontSize: 16 },
-  addText: { fontSize: 16, fontWeight: "700" },
+  backButton: { flexDirection: "row", alignItems: "center", gap: 4, width: 64 },
+  backArrow: { fontSize: 20, lineHeight: 24 },
+  cancelText: { fontSize: 15 },
+  submitButton: {
+    backgroundColor: "#6366f1",
+    borderRadius: 28,
+    paddingVertical: 17,
+    alignItems: "center",
+    marginTop: 8,
+    shadowColor: "#6366f1",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  submitButtonText: { color: "#fff", fontWeight: "700", fontSize: 17 },
   form: { padding: 20, gap: 20, paddingBottom: 60 },
   field: { gap: 8 },
   label: { fontSize: 11, fontWeight: "700", letterSpacing: 0.8 },
