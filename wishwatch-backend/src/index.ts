@@ -71,12 +71,15 @@ app.use(
 );
 
 // ─── Start ────────────────────────────────────────────────────────────────────
+const HOST = "0.0.0.0"; // listen on all interfaces — reachable via localhost and LAN IP
+
 async function main() {
   await connectDb();
   logger.info("Database connected");
 
-  app.listen(PORT, () => {
+  app.listen(PORT, HOST, () => {
     logger.info(`WishWatch backend running on http://localhost:${PORT}`);
+  });
   });
 
   startDailyScanJob();
