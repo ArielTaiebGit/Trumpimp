@@ -3,7 +3,7 @@ import { body, validationResult } from "express-validator";
 import { prisma } from "../db";
 import { computeAvg90, computeAllTimeLow, computeDealScore } from "../utils/dealScore";
 import { MAX_ITEMS } from "../utils/constants";
-import { scrapeItem } from "./scrape";
+import { scrapeItem, scrapeQueue } from "./scrape";
 import { logger } from "../utils/logger";
 import type { Request, Response } from "express";
 
@@ -57,6 +57,8 @@ itemsRouter.get("/", async (req: Request, res: Response) => {
       dealScore,
       avg90,
       allTimeLow,
+      isScanning: scrapeQueue.has(item.id),
+      shopCount: latestPrices.length,
     };
   });
 

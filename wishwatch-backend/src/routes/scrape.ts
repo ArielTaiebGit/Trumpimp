@@ -7,7 +7,7 @@ import type { Request, Response } from "express";
 
 export const scrapeRouter = Router();
 
-const scrapeQueue = new Set<string>(); // simple in-memory dedup
+export const scrapeQueue = new Set<string>(); // simple in-memory dedup
 
 /** POST /api/scrape/item/:id — trigger immediate scrape for one item */
 scrapeRouter.post("/item/:id", async (req: Request, res: Response) => {

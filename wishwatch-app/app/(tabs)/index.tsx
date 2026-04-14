@@ -34,7 +34,12 @@ export default function WishlistScreen() {
       const res = await api.getItems();
       return res.data;
     },
-    refetchInterval: 5 * 60 * 1000,
+    // Fast-poll while any item is actively scanning or has no prices yet
+    refetchInterval: (query) => {
+      const data: WishlistItem[] = (query.state.data as WishlistItem[]) ?? [];
+      const anyPending = data.some((i) => i.isScanning || (i.shopCount ?? i.latestPrices?.length ?? 0) === 0);
+      return anyPending ? 3000 : 5 * 60 * 1000;
+    },
   });
 
   const { data: stats } = useQuery({

@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
   View,
   Text,
   Image,
   TouchableOpacity,
   StyleSheet,
+  Animated,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useTheme } from "../hooks/useTheme";
@@ -23,6 +24,26 @@ export function WishlistCard({ item }: Props) {
 
   const best = item.bestPrice;
   const dealScore = item.dealScore ?? 0;
+  const shopCount = item.shopCount ?? item.latestPrices?.length ?? 0;
+  const isScanning = item.isScanning ?? false;
+  const hasNoPrices = shopCount === 0;
+
+  // Pulsing animation while scanning
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (isScanning || hasNoPrices) {
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 0.35, duration: 650, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 650, useNativeDriver: true }),
+        ])
+      );
+      loop.start();
+      return () => loop.stop();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [isScanning, hasNoPrices]);
 
   const handlePress = () => router.push(`/item/${item.id}`);
 
@@ -83,16 +104,28 @@ export function WishlistCard({ item }: Props) {
             </View>
           </View>
         ) : (
-          <Text style={[styles.noPrice, { color: colors.textTertiary }]}>
-            Scanning prices...
-          </Text>
+          <Animated.View style={{ opacity: pulseAnim }}>
+            <Text style={[styles.scanning, { color: colors.textTertiary }]}>
+              {isScanning ? "🔍 Scanning prices…" : "⏳ Waiting to scan…"}
+            </Text>
+          </Animated.View>
         )}
 
-        {item.allTimeLow != null && best && best.price <= item.allTimeLow + 0.01 && (
-          <View style={styles.atlBadge}>
-            <Text style={styles.atlText}>⭐ Best Price Ever</Text>
-          </View>
-        )}
+        {/* Bottom row: ATL badge + shop count */}
+        <View style={styles.bottomRow}>
+          {item.allTimeLow != null && best && best.price <= item.allTimeLow + 0.01 && (
+            <View style={styles.atlBadge}>
+              <Text style={styles.atlText}>⭐ Best Price Ever</Text>
+            </View>
+          )}
+          {shopCount > 0 && (
+            <View style={[styles.shopBadge, { backgroundColor: colors.surfaceSecondary }]}>
+              <Text style={[styles.shopText, { color: colors.textSecondary }]}>
+                🏪 {shopCount} {shopCount === 1 ? "shop" : "shops"}
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
 
       <View style={[styles.chevron]}>
@@ -176,21 +209,35 @@ const styles = StyleSheet.create({
     color: "#ef4444",
     fontWeight: "600",
   },
-  noPrice: {
+  scanning: {
     fontSize: 12,
     fontStyle: "italic",
+  },
+  bottomRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flexWrap: "wrap",
   },
   atlBadge: {
     backgroundColor: "#fef3c7",
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    alignSelf: "flex-start",
   },
   atlText: {
     fontSize: 10,
     color: "#92400e",
     fontWeight: "600",
+  },
+  shopBadge: {
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  shopText: {
+    fontSize: 10,
+    fontWeight: "500",
   },
   chevron: {
     paddingLeft: 8,

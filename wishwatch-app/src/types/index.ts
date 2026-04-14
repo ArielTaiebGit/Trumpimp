@@ -22,6 +22,8 @@ export interface WishlistItem {
   dealScore?: number;
   allTimeLow?: number;
   avg90?: number;
+  isScanning?: boolean;
+  shopCount?: number;
 }
 
 export interface PriceRecord {
