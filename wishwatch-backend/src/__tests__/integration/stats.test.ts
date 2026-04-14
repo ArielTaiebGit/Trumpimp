@@ -64,7 +64,7 @@ describe("GET /api/stats — Philips OneBlade with full history", () => {
     await prisma.priceRecord.createMany({
       data: [
         ...makeHistoricalPrices(itemId),
-        ...ONEBLADE_CURRENT_PRICES.map((p) => ({ ...p, itemId })),
+        ...ONEBLADE_CURRENT_PRICES.map(({ imageUrl: _img, ...p }) => ({ ...p, itemId })),
       ],
     });
   });
@@ -84,8 +84,9 @@ describe("GET /api/stats — Philips OneBlade with full history", () => {
       .set("x-device-id", DEVICE.alice);
 
     expect(res.body.totalSavings).toBeGreaterThan(0);
-    // Avg ≈ €30.99, best price €24.99 → savings ≈ €6
-    expect(res.body.totalSavings).toBeCloseTo(6, 0);
+    // avg90 includes all retailers (3 historical + 3 current) ≈ €30.24
+    // best = amazon_es €24.99 → savings ≈ €5.25
+    expect(res.body.totalSavings).toBeCloseTo(5.25, 1);
   });
 
   it("lastScanAt updates when item is scanned", async () => {
@@ -119,7 +120,7 @@ describe("GET /api/stats — device isolation", () => {
     await prisma.priceRecord.createMany({
       data: [
         ...makeHistoricalPrices(res1.body.id),
-        ...ONEBLADE_CURRENT_PRICES.map((p) => ({ ...p, itemId: res1.body.id })),
+        ...ONEBLADE_CURRENT_PRICES.map(({ imageUrl: _img, ...p }) => ({ ...p, itemId: res1.body.id })),
       ],
     });
 

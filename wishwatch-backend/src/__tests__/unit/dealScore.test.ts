@@ -23,13 +23,13 @@ function makeRecord(
     id: "r1",
     itemId: FAKE_ID,
     retailer: "amazon_es",
-    price: overrides.price,
     originalPrice: null,
     currency: "EUR",
     url: "https://example.com",
-    inStock: true,
+    // Defaults are "worst case" so each test only scores the component under test
+    inStock: false,
     shipsToSpain: true,
-    shippingCost: 0,
+    shippingCost: 9.99,
     recordedAt: new Date(),
     ...overrides,
   };

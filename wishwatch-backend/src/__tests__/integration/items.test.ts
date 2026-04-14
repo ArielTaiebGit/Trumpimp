@@ -295,8 +295,9 @@ describe("GET /api/items — enriched price data", () => {
     itemId = createRes.body.id;
 
     // Seed current prices directly into DB (simulates post-scrape state)
+    // Strip imageUrl — it's a scraper field not present in PriceRecord schema
     await prisma.priceRecord.createMany({
-      data: ONEBLADE_CURRENT_PRICES.map((p) => ({ ...p, itemId })),
+      data: ONEBLADE_CURRENT_PRICES.map(({ imageUrl: _img, ...p }) => ({ ...p, itemId })),
     });
   });
 
@@ -374,7 +375,7 @@ describe("GET /api/items/:id/prices — price history", () => {
     await prisma.priceRecord.createMany({
       data: [
         ...makeHistoricalPrices(itemId),
-        ...ONEBLADE_CURRENT_PRICES.map((p) => ({ ...p, itemId })),
+        ...ONEBLADE_CURRENT_PRICES.map(({ imageUrl: _img, ...p }) => ({ ...p, itemId })),
       ],
     });
   });

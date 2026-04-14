@@ -1,8 +1,13 @@
 // In dev, derive the backend host from Expo's own host URI so it works
 // on a real device without manually editing IPs.
 // e.g. Expo serves from 192.168.1.42:8081 → backend is 192.168.1.42:3000
+// On web, hostUri is the LAN IP (not localhost), so we always use localhost.
+import { Platform } from "react-native";
+
 function resolveApiUrl(): string {
   if (!__DEV__) return "https://your-wishwatch-backend.com/api";
+  // Browser always talks to localhost — LAN IP from hostUri is unreachable
+  if (Platform.OS === "web") return "http://localhost:3000/api";
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Constants = require("expo-constants").default;

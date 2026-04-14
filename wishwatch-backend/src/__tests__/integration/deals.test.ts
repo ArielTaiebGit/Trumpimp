@@ -38,7 +38,7 @@ async function addOnebladeWithFullHistory(): Promise<string> {
   await prisma.priceRecord.createMany({
     data: [
       ...makeHistoricalPrices(itemId),
-      ...ONEBLADE_CURRENT_PRICES.map((p) => ({ ...p, itemId })),
+      ...ONEBLADE_CURRENT_PRICES.map(({ imageUrl: _img, ...p }) => ({ ...p, itemId })),
     ],
   });
 
@@ -131,7 +131,9 @@ describe("GET /api/deals — Philips OneBlade with full price history", () => {
 
 describe("GET /api/deals — threshold filtering", () => {
   it("excludes item scoring below the badge threshold", async () => {
-    // Item with prices but no history → score = 15(ship) + 15(stock) = 30 < 60
+    // No history → avg90=null, ATL=100 (single price, so current==ATL → +30pts)
+    // Paid shipping + out of stock → ship=0pts, stock=0pts
+    // Total = 30pts < DEAL_SCORE_BADGE_THRESHOLD (60) → excluded
     const res1 = await request(app)
       .post("/api/items")
       .set("x-device-id", DEVICE.alice)
@@ -144,9 +146,9 @@ describe("GET /api/deals — threshold filtering", () => {
         price: 100,
         currency: "EUR",
         url: "https://amazon.es/test",
-        inStock: true,
+        inStock: false,
         shipsToSpain: true,
-        shippingCost: 0,
+        shippingCost: 9.99,
       },
     });
 
