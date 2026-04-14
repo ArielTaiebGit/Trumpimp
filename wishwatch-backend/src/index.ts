@@ -80,7 +80,6 @@ async function main() {
   app.listen(PORT, HOST, () => {
     logger.info(`WishWatch backend running on http://localhost:${PORT}`);
   });
-  });
 
   startDailyScanJob();
 }
