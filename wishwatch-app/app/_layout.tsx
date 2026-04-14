@@ -5,7 +5,6 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Platform } from "react-native";
 import { useTheme } from "../src/hooks/useTheme";
-import { registerForPushNotificationsAsync } from "../src/utils/notifications";
 import { api } from "../src/services/api";
 
 const queryClient = new QueryClient({
@@ -21,14 +20,17 @@ function RootLayoutInner() {
   const { isDark } = useTheme();
 
   useEffect(() => {
-    // Push notifications only on native (not web)
+    // Push notifications only on native — dynamic import keeps expo-notifications
+    // out of the web bundle entirely (static import crashes on web at load time)
     if (Platform.OS === "web") return;
-    registerForPushNotificationsAsync().then(async (token) => {
-      if (token) {
-        try {
-          await api.registerPushToken(token);
-        } catch {}
-      }
+    import("../src/utils/notifications").then(({ registerForPushNotificationsAsync }) => {
+      registerForPushNotificationsAsync().then(async (token) => {
+        if (token) {
+          try {
+            await api.registerPushToken(token);
+          } catch {}
+        }
+      });
     });
   }, []);
 
