@@ -3,6 +3,8 @@ import { body, validationResult } from "express-validator";
 import { prisma } from "../db";
 import { computeAvg90, computeAllTimeLow, computeDealScore } from "../utils/dealScore";
 import { MAX_ITEMS } from "../utils/constants";
+import { scrapeItem } from "./scrape";
+import { logger } from "../utils/logger";
 import type { Request, Response } from "express";
 
 export const itemsRouter = Router();
@@ -106,6 +108,11 @@ itemsRouter.post(
     });
 
     res.status(201).json(item);
+
+    // Fire-and-forget: scrape prices immediately in the background
+    scrapeItem(item.id, item.searchQuery || item.name).catch((err) =>
+      logger.error(`Background scrape failed for new item ${item.id}`, err)
+    );
   }
 );
 
