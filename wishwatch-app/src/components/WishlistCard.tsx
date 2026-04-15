@@ -34,8 +34,8 @@ export function WishlistCard({ item }: Props) {
     if (isScanning || hasNoPrices) {
       const loop = Animated.loop(
         Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 0.35, duration: 650, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 650, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 0.35, duration: 650, useNativeDriver: false }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 650, useNativeDriver: false }),
         ])
       );
       loop.start();
